@@ -1,10 +1,11 @@
 name: WorldAccessBlocker
-version: '0.1'
+version: '0.2'
 main: net.denfry.worldAccessBlocker.WorldAccessBlocker
 api-version: '1.21'
 load: STARTUP
 authors: [ denfry, ZackUA ]
 description: Plugin that blocks access to end, nether, elytra
+folia-supported: true
 commands:
   wabreload:
     description: "Перезагрузить конфиг плагина"
