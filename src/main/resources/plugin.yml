@@ -1,16 +1,23 @@
 name: WorldAccessBlocker
-version: '0.2'
+version: '${project.version}'
 main: net.denfry.worldAccessBlocker.WorldAccessBlocker
-api-version: '1.21'
+api-version: '1.16'
 load: STARTUP
-authors: [ denfry, ZackUA ]
-description: Plugin that blocks access to end, nether, elytra
+authors: [ denfry ]
+description: Plugin that blocks access to end, nether, elytra with enhanced features
 folia-supported: true
+
 commands:
   wabreload:
-    description: "Перезагрузить конфиг плагина"
+    description: "Reload the plugin configuration"
     permission: wab.reload
+  wab:
+    description: "Manage WorldAccessBlocker restrictions"
+    permission: wab.bypass
 permissions:
   wab.reload:
-    description: "Позволяет перезагружать конфиг"
+    description: "Allows reloading the config"
+    default: op
+  wab.bypass:
+    description: "Allows bypassing restrictions"
     default: op

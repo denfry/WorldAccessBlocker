@@ -1,9 +1,110 @@
-# Даты запретов (в формате ГГГГ-ММ-ДД ЧЧ:ММ:СС)
-nether-restriction-date: "2025-03-10 00:00:00"
-end-restriction-date: "2025-04-15 00:00:00"
-elytra-restriction-date: "2025-05-01 00:00:00"
+# ===================================================================
+# WorldAccessBlocker v0.7
+# ===================================================================
 
-# Включение/выключение ограничений
-disable-nether: true
-disable-end: true
-disable-elytra: true
+# Язык сообщений: "ru" или "en"
+language: "ru"
+
+# Часовой пояс сервера (важно для recurring!)
+# Список: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+time-zone: "Europe/Moscow"
+
+# ===================================================================
+# Nether
+# ===================================================================
+nether:
+  disable: true
+  # Если recurring НЕТ — используется эта дата (до какого момента заблокировано)
+  restriction-date: "2025-03-10 00:00:00"
+  disable-portal-creation: true
+  disable-teleportation: true
+
+  # НОВОЕ: расписание по дням и времени
+  # Если этот блок есть — restriction-date ИГНОРИРУЕТСЯ
+  recurring:
+    periods:
+      # Пример 1: только по воскресеньям с 15:00 до 17:00
+      - days: [SUNDAY]
+        start-time: "15:00"
+        end-time: "17:00"
+
+      # Пример 2: по выходным весь день
+      - days: [SATURDAY, SUNDAY]
+
+      # Пример 3: каждый понедельник с 18:00 до 23:59
+      - days: [MONDAY]
+        start-time: "18:00"
+        end-time: "23:59"
+
+# ===================================================================
+# End
+# ===================================================================
+end:
+  disable: true
+  restriction-date: "2025-04-15 00:00:00"
+  disable-portal-activation: true
+
+  # Пример: всегда заблокировано (пустой список = никогда)
+  recurring:
+    periods: []
+
+  # Альтернатива: открыть только в определённые дни
+  # recurring:
+  #   periods:
+  #     - days: [FRIDAY, SATURDAY, SUNDAY]
+  #       start-time: "12:00"
+  #       end-time: "22:00"
+
+# ===================================================================
+# Elytra
+# ===================================================================
+elytra:
+  disable: true
+  restriction-date: "2025-05-01 00:00:00"
+  disable-equip: true
+  disable-flight: true
+
+  recurring:
+    periods:
+      # Весь день по выходным
+      - days: [SATURDAY, SUNDAY]
+
+      # По пятницам только вечером
+      - days: [FRIDAY]
+        start-time: "18:00"
+        end-time: "23:59"
+
+# ===================================================================
+# Custom Worlds
+# ===================================================================
+custom-worlds:
+  # Пример 1: лобби — только в будни с 9 до 17
+  lobby_world:
+    disable: true
+    restriction-date: "2099-12-31 23:59:59"  # не используется (есть recurring)
+    recurring:
+      periods:
+        - days: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]
+          start-time: "09:00"
+          end-time: "17:00"
+
+  # Пример 2: мини-игра — только по субботам с 14:00
+  minigame_world:
+    disable: true
+    recurring:
+      periods:
+        - days: [SATURDAY]
+          start-time: "14:00"
+          end-time: "20:00"
+
+  # Пример 3: всегда заблокировано (пустой recurring)
+  secret_world:
+    disable: true
+    recurring:
+      periods: []
+
+  # Пример 4: работает по старой дате (recurring нет)
+  old_style_world:
+    disable: true
+    restriction-date: "2025-06-01 00:00:00"
+    # recurring: НЕТ → используется дата выше
