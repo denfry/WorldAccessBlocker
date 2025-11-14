@@ -68,8 +68,8 @@ body:
       validations:
         required: false
 
-    - type: markdown
-      attributes:
-        value: |
+  - type: markdown
+    attributes:
+      value: |
         ---
         **Tip:** Use [mclo.gs](https://mclo.gs) for logs and [paste.gg](https://paste.gg) for config.yml.
