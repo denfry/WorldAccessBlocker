@@ -1,0 +1,75 @@
+name: Feature Request
+description: Suggest a new feature or improvement for WorldAccessBlocker
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a feature!  
+        Current version: **0.7.1** | Supports **Minecraft 1.16 - 1.21+**
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: Clearly describe the feature or improvement you'd like to see.
+      placeholder: |
+        e.g., Add support for time ranges that span midnight (e.g., 22:00 to 02:00).
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Explain how this feature would help and in what scenarios it would be used.
+      placeholder: |
+        e.g., Allow servers to open Nether access only during late-night events on weekends.
+    validations:
+      required: true
+
+  - type: input
+    id: minecraft-version
+    attributes:
+      label: Target Minecraft Version(s)
+      description: Which Minecraft versions should this feature support? (e.g., 1.16–1.21+)
+      placeholder: e.g., 1.16 - 1.21+
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Low
+        - Medium
+        - High
+        - Critical
+      default: 1
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-info
+    attributes:
+      label: Additional Information
+      description: Any mockups, config examples, related plugins, or extra context.
+      placeholder: |
+        e.g., 
+        ```yaml
+        nether:
+          recurring:
+            periods:
+              - days: [FRIDAY, SATURDAY]
+                start-time: "22:00"
+                end-time: "02:00"  # ← should wrap to next day
+      validations:
+        required: false
+
+    - type: markdown
+      attributes:
+        value: |
+        ---
+        **Tip:** Use [mclo.gs](https://mclo.gs) for logs and [paste.gg](https://paste.gg) for config.yml.
