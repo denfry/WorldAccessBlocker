@@ -7,7 +7,6 @@ body:
       value: |
         Thank you for suggesting a feature!
         Current version: **0.7.1** | Supports **Minecraft 1.16 - 1.21+**
-
   - type: textarea
     id: feature-description
     attributes:
@@ -17,7 +16,6 @@ body:
         e.g., Add support for time ranges that span midnight (e.g., 22:00 to 02:00).
     validations:
       required: true
-
   - type: textarea
     id: use-case
     attributes:
@@ -27,7 +25,6 @@ body:
         e.g., Allow servers to open Nether access only during late-night events on weekends.
     validations:
       required: true
-
   - type: input
     id: minecraft-version
     attributes:
@@ -36,7 +33,6 @@ body:
       placeholder: e.g., 1.16 - 1.21+
     validations:
       required: true
-
   - type: dropdown
     id: priority
     attributes:
@@ -50,7 +46,6 @@ body:
       default: 1
     validations:
       required: false
-
   - type: textarea
     id: additional-info
     attributes:
@@ -65,9 +60,9 @@ body:
               - days: [FRIDAY, SATURDAY]
                 start-time: "22:00"
                 end-time: "02:00" # ← should wrap to next day
-      validations:
-        required: false
-
+        ```
+    validations:
+      required: false
   - type: markdown
     attributes:
       value: |
