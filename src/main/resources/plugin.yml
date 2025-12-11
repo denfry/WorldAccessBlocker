@@ -6,6 +6,7 @@ load: STARTUP
 authors: [ denfry ]
 description: Plugin that blocks access to end, nether, elytra with enhanced features
 folia-supported: true
+softdepend: [PlaceholderAPI, WorldGuard]
 
 commands:
   wabreload:
@@ -14,10 +15,32 @@ commands:
   wab:
     description: "Manage WorldAccessBlocker restrictions"
     permission: wab.bypass
+    usage: "/wab <bypass|remove|list|clearexpired|status|stats|gui>"
 permissions:
   wab.reload:
     description: "Allows reloading the config"
     default: op
   wab.bypass:
     description: "Allows bypassing restrictions"
+    default: op
+  wab.bypass.nether:
+    description: "Allows bypassing Nether restrictions"
+    default: op
+  wab.bypass.end:
+    description: "Allows bypassing End restrictions"
+    default: op
+  wab.bypass.elytra:
+    description: "Allows bypassing Elytra restrictions"
+    default: op
+  wab.bypass.region:
+    description: "Allows bypassing WorldGuard region blocks"
+    default: op
+  wab.status:
+    description: "Allows checking restriction status"
+    default: true
+  wab.stats:
+    description: "Allows viewing WAB stats"
+    default: op
+  wab.gui:
+    description: "Allows opening WAB admin GUI"
     default: op

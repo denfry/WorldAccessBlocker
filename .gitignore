@@ -1,0 +1,16 @@
+target/
+.idea/
+*.iml
+.DS_Store
+/.settings/
+/.classpath
+/.project
+/.vscode/
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+/.env
+/.cursor/
+

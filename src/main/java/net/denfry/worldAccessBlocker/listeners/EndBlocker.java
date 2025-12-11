@@ -33,4 +33,5 @@ public class EndBlocker implements Listener {
             plugin.sendRestrictionMessage(event.getPlayer(), "end");
         }
     }
+
 }

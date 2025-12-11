@@ -2,12 +2,64 @@
 # WorldAccessBlocker v0.7
 # ===================================================================
 
+# Версия сборки: "free" или "pro" (устанавливается при сборке)
+edition: "${wab.edition}"
+
 # Язык сообщений: "ru" или "en"
 language: "ru"
 
 # Часовой пояс сервера (важно для recurring!)
 # Список: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 time-zone: "Europe/Moscow"
+
+# Настройки уведомлений
+notifications:
+  # chat / actionbar / both
+  mode: "chat"
+  # Уведомлять админов (permission: wab.status) о блокировках игроков
+  admin-alert: true
+  # Звук при блокировке ("" чтобы отключить)
+  sound: "ENTITY_VILLAGER_NO"
+  bossbar: true
+
+# Discord webhook для уведомлений о попытках входа / событиях (Pro)
+discord:
+  enabled: false
+  webhook-url: ""
+  send-on-block: true
+  send-on-update: true
+
+# GUI (Pro)
+gui:
+  enabled: true
+
+# Статистика (Pro)
+stats:
+  enabled: true
+
+# Кросс-серверная синхронизация байпасов (Bungee/Velocity, Pro)
+sync:
+  enabled: false
+  channel: "wab:sync"
+
+# Кастомная точка возврата вместо spawn по умолчанию
+teleport:
+  use-custom-spawn: false
+  world: "world"
+  x: 0.5
+  y: 64.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+
+# Проверка обновлений Modrinth
+update-check:
+  enabled: true
+  modrinth-id: "worldaccessblocker"
+
+# Очистка истекших обходов при старте
+bypass:
+  auto-clean-expired: true
 
 # ===================================================================
 # Nether
@@ -18,6 +70,12 @@ nether:
   restriction-date: "2025-03-10 00:00:00"
   disable-portal-creation: true
   disable-teleportation: true
+  # Список дат (yyyy-MM-dd), когда доступ всегда закрыт, даже если есть расписание
+  skip-dates: []
+  # Разовые окна доступа (приоритет выше recurring) — даты в часовом поясе сервера
+  one-time-windows:
+    - start: "2025-03-09 18:00:00"
+      end: "2025-03-09 20:00:00"
 
   # НОВОЕ: расписание по дням и времени
   # Если этот блок есть — restriction-date ИГНОРИРУЕТСЯ
@@ -43,6 +101,8 @@ end:
   disable: true
   restriction-date: "2025-04-15 00:00:00"
   disable-portal-activation: true
+  skip-dates: []
+  one-time-windows: []
 
   # Пример: всегда заблокировано (пустой список = никогда)
   recurring:
@@ -63,6 +123,8 @@ elytra:
   restriction-date: "2025-05-01 00:00:00"
   disable-equip: true
   disable-flight: true
+  skip-dates: []
+  one-time-windows: []
 
   recurring:
     periods:
@@ -82,6 +144,8 @@ custom-worlds:
   lobby_world:
     disable: true
     restriction-date: "2099-12-31 23:59:59"  # не используется (есть recurring)
+    skip-dates: []
+    one-time-windows: []
     recurring:
       periods:
         - days: [MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY]

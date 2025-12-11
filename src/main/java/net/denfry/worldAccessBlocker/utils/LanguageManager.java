@@ -14,6 +14,9 @@ public class LanguageManager {
     private final WorldAccessBlocker plugin;
     private final Map<String, String> messages = new HashMap<>();
     private String language;
+    private File langFile;
+    private long lastModified;
+    private boolean watcherStarted;
 
     public LanguageManager(WorldAccessBlocker plugin) {
         this.plugin = plugin;
@@ -28,7 +31,7 @@ public class LanguageManager {
 
     private void loadLanguageFile() {
         String langFileName = "lang/" + language + ".yml";
-        File langFile = new File(plugin.getDataFolder(), langFileName);
+        langFile = new File(plugin.getDataFolder(), langFileName);
 
         plugin.saveResource("lang/en.yml", false);
         plugin.saveResource("lang/ru.yml", false);
@@ -40,12 +43,27 @@ public class LanguageManager {
         }
 
         langConfig = YamlConfiguration.loadConfiguration(langFile);
+        lastModified = langFile.lastModified();
 
         for (String key : langConfig.getKeys(true)) {
             if (!langConfig.isConfigurationSection(key)) {
                 messages.put(key, langConfig.getString(key, ""));
             }
         }
+    }
+
+    public void startAutoReload() {
+        if (watcherStarted) return;
+        watcherStarted = true;
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            if (langFile == null || !langFile.exists()) return;
+            long mod = langFile.lastModified();
+            if (mod != lastModified) {
+                lastModified = mod;
+                reloadLanguage();
+                plugin.getLogger().info(getMessage("lang_reloaded"));
+            }
+        }, 200L, 200L);
     }
 
     public String getMessage(String key, Object... args) {
