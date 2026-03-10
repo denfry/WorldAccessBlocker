@@ -85,13 +85,12 @@ public class ElytraBlocker implements Listener {
         ItemStack currentItem = event.getCurrentItem();
 
         if (event.getSlotType() == InventoryType.SlotType.ARMOR && event.getRawSlot() == 38) {
-            if (cursor.getType() == Material.ELYTRA || currentItem != null && currentItem.getType() == Material.ELYTRA) {
+            if (isElytra(cursor) || isElytra(currentItem)) {
                 event.setCancelled(true);
                 plugin.sendRestrictionMessage(player, "elytra_equip");
             }
-        } else if (event.isShiftClick() && currentItem != null && currentItem.getType() == Material.ELYTRA) {
-            if (player.getInventory().getChestplate() == null &&
-                    event.getInventory().getType() != InventoryType.CRAFTING) {
+        } else if (event.isShiftClick() && isElytra(currentItem)) {
+            if (player.getInventory().getChestplate() == null) {
                 event.setCancelled(true);
                 plugin.sendRestrictionMessage(player, "elytra_equip");
             }
@@ -131,5 +130,9 @@ public class ElytraBlocker implements Listener {
                 plugin.sendRestrictionMessage(player, "elytra_equip");
             }
         }
+    }
+
+    private boolean isElytra(ItemStack item) {
+        return item != null && item.getType() == Material.ELYTRA;
     }
 }

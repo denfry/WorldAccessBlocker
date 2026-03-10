@@ -108,3 +108,15 @@ custom-worlds:
     disable: true
     restriction-date: "2025-06-01 00:00:00"
     # recurring: НЕТ → используется дата выше
+
+# ===================================================================
+# Fallback Teleports
+# ===================================================================
+# Where players are teleported when they hit a blocked destination.
+# Value is a world name; spawn location of that world will be used.
+fallback-spawns:
+  # default: "world"
+  # nether: "world"
+  # end: "world"
+  # custom-worlds:
+  #   lobby_world: "hub"

@@ -25,19 +25,19 @@ public class RestrictionEnforcer implements Runnable {
                     plugin.getConfigManager().isDisableNether() &&
                     plugin.getConfigManager().isRestrictionActive("nether", now) &&
                     plugin.isRestricted(player, "nether")) {
-                player.teleport(plugin.getOverworldSpawn());
+                player.teleport(plugin.getFallbackSpawn("nether"));
                 plugin.sendRestrictionMessage(player, "nether");
             } else if (world.getEnvironment() == World.Environment.THE_END &&
                     plugin.getConfigManager().isDisableEnd() &&
                     plugin.getConfigManager().isRestrictionActive("end", now) &&
                     plugin.isRestricted(player, "end")) {
-                player.teleport(plugin.getOverworldSpawn());
+                player.teleport(plugin.getFallbackSpawn("end"));
                 plugin.sendRestrictionMessage(player, "end");
             } else if (plugin.getConfigManager().getCustomWorlds().contains(worldName) &&
                     plugin.getConfigManager().isCustomWorldDisabled(worldName) &&
                     plugin.getConfigManager().isRestrictionActive(worldName, now) &&
                     plugin.isRestricted(player, worldName)) {
-                player.teleport(plugin.getOverworldSpawn());
+                player.teleport(plugin.getFallbackSpawn(worldName));
                 plugin.sendRestrictionMessage(player, worldName);
             }
         }

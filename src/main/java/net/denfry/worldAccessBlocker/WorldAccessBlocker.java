@@ -3,7 +3,13 @@ package net.denfry.worldAccessBlocker;
 import net.denfry.worldAccessBlocker.listeners.ElytraBlocker;
 import net.denfry.worldAccessBlocker.listeners.EndBlocker;
 import net.denfry.worldAccessBlocker.listeners.PortalBlocker;
-import net.denfry.worldAccessBlocker.utils.*;
+import net.denfry.worldAccessBlocker.utils.BypassCommand;
+import net.denfry.worldAccessBlocker.utils.BypassManager;
+import net.denfry.worldAccessBlocker.utils.ConfigManager;
+import net.denfry.worldAccessBlocker.utils.LanguageManager;
+import net.denfry.worldAccessBlocker.utils.ReloadCommand;
+import net.denfry.worldAccessBlocker.utils.RestrictionEnforcer;
+import net.denfry.worldAccessBlocker.utils.WabPlaceholders;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bstats.bukkit.Metrics;
@@ -27,7 +33,7 @@ public class WorldAccessBlocker extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        log.info("⚙️ Initializing WorldAccessBlocker...");
+        log.info("Initializing WorldAccessBlocker...");
 
         configManager = new ConfigManager(this);
         languageManager = new LanguageManager(this);
@@ -35,42 +41,26 @@ public class WorldAccessBlocker extends JavaPlugin {
         configManager.loadConfigValues();
         bypassManager.loadBypasses();
 
-        log.info("📂 Configuration loaded:");
-        log.info("  ├─ 🔥 Nether restriction: " + configManager.isDisableNether() + " (until " + configManager.getNetherRestrictionInstant() + ")");
-        log.info("  ├─ ⚫ End restriction: " + configManager.isDisableEnd() + " (until " + configManager.getEndRestrictionInstant() + ")");
-        log.info("  ├─ 🛑 Elytra restriction: " + configManager.isDisableElytra() + " (until " + configManager.getElytraRestrictionInstant() + ")");
-        log.info("  ├─ 🌐 Language: " + getConfig().getString("language", "en"));
-        log.info("  └─ 🗺️ Custom worlds restrictions:");
-        for (String world : configManager.getCustomWorlds()) {
-            log.info("     - " + world + ": " + configManager.isCustomWorldDisabled(world) + " (until " + configManager.getCustomWorldRestrictionInstant(world) + ")");
-        }
-
-        log.info("🔗 Registering events...");
         getServer().getPluginManager().registerEvents(new PortalBlocker(this), this);
         getServer().getPluginManager().registerEvents(new EndBlocker(this), this);
         getServer().getPluginManager().registerEvents(new ElytraBlocker(this), this);
-        log.info("✅ All event handlers registered!");
 
         if (getCommand("wabreload") != null) {
             Objects.requireNonNull(getCommand("wabreload")).setExecutor(new ReloadCommand(this, configManager, languageManager));
-            log.info("📝 Command /wabreload successfully registered!");
         } else {
-            log.severe("❌ Error: Command /wabreload not registered in plugin.yml!");
+            log.severe("Command /wabreload is not registered in plugin.yml");
         }
 
         if (getCommand("wab") != null) {
             BypassCommand bypassCommand = new BypassCommand(this, bypassManager);
             Objects.requireNonNull(getCommand("wab")).setExecutor(bypassCommand);
             Objects.requireNonNull(getCommand("wab")).setTabCompleter(bypassCommand);
-            log.info("📝 Command /wab successfully registered!");
         } else {
-            log.severe("❌ Error: Command /wab not registered in plugin.yml!");
+            log.severe("Command /wab is not registered in plugin.yml");
         }
 
         if (Bukkit.getVersion().contains("Folia")) {
-            log.warning("⚠️ WARNING: Server is running on Folia!");
-            log.warning("⚠️ Portal cancellation via PlayerPortalEvent does NOT work in Folia.");
-            log.warning("⚠️ Issues may occur with Nether access blocking.");
+            log.warning("Folia detected: PlayerPortalEvent-based nether blocking may be limited.");
         }
 
         try {
@@ -79,23 +69,22 @@ public class WorldAccessBlocker extends JavaPlugin {
             metrics.addCustomChart(new SimplePie("nether_disabled", () -> configManager.isDisableNether() ? "Enabled" : "Disabled"));
             metrics.addCustomChart(new SimplePie("end_disabled", () -> configManager.isDisableEnd() ? "Enabled" : "Disabled"));
             metrics.addCustomChart(new SimplePie("elytra_disabled", () -> configManager.isDisableElytra() ? "Enabled" : "Disabled"));
-            log.info("📊 bStats metrics successfully initialized!");
         } catch (Exception e) {
-            log.warning("⚠️ Failed to initialize bStats metrics: " + e.getMessage());
+            log.warning("Failed to initialize bStats metrics: " + e.getMessage());
         }
 
-        scheduleRestrictionCheck();
-        log.info("✅ WorldAccessBlocker plugin successfully loaded!");
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new WabPlaceholders(this).register();
+            log.info("PlaceholderAPI hook enabled.");
+        }
+
+        Bukkit.getScheduler().runTaskTimer(this, new RestrictionEnforcer(this), 0L, 100L);
+        log.info("WorldAccessBlocker enabled.");
     }
 
     @Override
     public void onDisable() {
         bypassManager.saveBypasses();
-        log.info("💾 Bypasses saved successfully!");
-    }
-
-    private void scheduleRestrictionCheck() {
-        Bukkit.getScheduler().runTaskTimer(this, new RestrictionEnforcer(this), 0L, 100L);
     }
 
     public Location getOverworldSpawn() {
@@ -104,6 +93,17 @@ public class WorldAccessBlocker extends JavaPlugin {
                 .findFirst()
                 .map(World::getSpawnLocation)
                 .orElse(Bukkit.getWorlds().getFirst().getSpawnLocation());
+    }
+
+    public Location getFallbackSpawn(String feature) {
+        String configuredWorld = configManager.getFallbackSpawnWorld(feature);
+        if (configuredWorld != null) {
+            World world = Bukkit.getWorld(configuredWorld);
+            if (world != null) {
+                return world.getSpawnLocation();
+            }
+        }
+        return getOverworldSpawn();
     }
 
     public boolean isRestricted(Player player, String feature) {

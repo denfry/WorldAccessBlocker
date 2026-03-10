@@ -4,6 +4,7 @@ import net.denfry.worldAccessBlocker.WorldAccessBlocker;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,8 @@ public class BypassManager {
     private final Map<UUID, Map<String, Instant>> bypasses = new HashMap<>();
     private final WorldAccessBlocker plugin;
     private final File bypassFile;
+    private BukkitTask saveTask;
+    private boolean dirty;
 
     public BypassManager(WorldAccessBlocker plugin) {
         this.plugin = plugin;
@@ -24,7 +27,7 @@ public class BypassManager {
 
     public void grantBypass(UUID playerId, String feature, Instant bypassUntil) {
         bypasses.computeIfAbsent(playerId, k -> new HashMap<>()).put(feature, bypassUntil);
-        saveBypasses();
+        scheduleSave();
     }
 
     public boolean removeBypass(UUID playerId, String feature) {
@@ -33,7 +36,7 @@ public class BypassManager {
             if (playerBypasses.isEmpty()) {
                 bypasses.remove(playerId);
             }
-            saveBypasses();
+            scheduleSave();
             return true;
         }
         return false;
@@ -50,13 +53,14 @@ public class BypassManager {
                 if (playerBypasses.isEmpty()) {
                     bypasses.remove(playerId);
                 }
-                saveBypasses();
+                scheduleSave();
             }
         }
         return true;
     }
 
     public void loadBypasses() {
+        bypasses.clear();
         if (!bypassFile.exists()) {
             return;
         }
@@ -81,6 +85,11 @@ public class BypassManager {
     }
 
     public void saveBypasses() {
+        if (saveTask != null) {
+            saveTask.cancel();
+            saveTask = null;
+        }
+
         FileConfiguration config = new YamlConfiguration();
         for (Map.Entry<UUID, Map<String, Instant>> entry : bypasses.entrySet()) {
             ConfigurationSection section = config.createSection(entry.getKey().toString());
@@ -90,8 +99,29 @@ public class BypassManager {
         }
         try {
             config.save(bypassFile);
+            dirty = false;
         } catch (IOException e) {
             plugin.getLogger().warning("Failed to save bypasses: " + e.getMessage());
         }
+    }
+
+    private void scheduleSave() {
+        dirty = true;
+        if (saveTask != null) return;
+
+        saveTask = plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+            saveTask = null;
+            if (dirty) {
+                saveBypasses();
+            }
+        }, 40L);
+    }
+
+    public Instant getActiveBypassUntil(UUID playerId, String feature, Instant now) {
+        Map<String, Instant> playerBypasses = bypasses.get(playerId);
+        if (playerBypasses == null) return null;
+        Instant bypassUntil = playerBypasses.get(feature);
+        if (bypassUntil == null) return null;
+        return now.isBefore(bypassUntil) ? bypassUntil : null;
     }
 }

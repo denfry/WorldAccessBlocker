@@ -26,6 +26,7 @@ public class ConfigManager {
     private final Map<String, Instant> customWorldRestrictionInstants = new HashMap<>();
     private final Map<String, List<SchedulePeriod>> recurringPeriods = new HashMap<>();
     private final Map<String, Boolean> useRecurring = new HashMap<>();
+    private final Map<String, String> fallbackSpawnWorlds = new HashMap<>();
 
     private static class SchedulePeriod {
         List<DayOfWeek> days = new ArrayList<>();
@@ -40,6 +41,9 @@ public class ConfigManager {
 
     public void loadConfigValues() {
         FileConfiguration config = plugin.getConfig();
+        recurringPeriods.clear();
+        useRecurring.clear();
+        fallbackSpawnWorlds.clear();
 
         lang = config.getString("language", "en");
 
@@ -91,10 +95,15 @@ public class ConfigManager {
                 convertOldDaysFormat(worldName, worldSec);
             }
         }
+
+        loadFallbackSpawns(config);
     }
 
     private void loadRecurring(String feature, ConfigurationSection section) {
         if (section == null || !section.contains("periods")) return;
+
+        useRecurring.put(feature, true);
+        recurringPeriods.remove(feature);
 
         List<Map<?, ?>> rawMaps = section.getMapList("periods");
         List<SchedulePeriod> periods = new ArrayList<>();
@@ -146,10 +155,7 @@ public class ConfigManager {
             periods.add(p);
         }
 
-        if (!periods.isEmpty()) {
-            recurringPeriods.put(feature, periods);
-            useRecurring.put(feature, true);
-        }
+        recurringPeriods.put(feature, periods);
     }
 
     private void convertOldDaysFormat(String feature, ConfigurationSection parent) {
@@ -182,11 +188,15 @@ public class ConfigManager {
             LocalTime time = zdt.toLocalTime();
 
             List<SchedulePeriod> periods = recurringPeriods.getOrDefault(feature, Collections.emptyList());
+            if (periods.isEmpty()) {
+                return true;
+            }
+
             return periods.stream().noneMatch(p ->
                     p.days.contains(day) &&
                             (p.start == null ||
                                     (time.isAfter(p.start) || time.equals(p.start)) &&
-                                            time.isBefore(p.end)));
+                                            (time.isBefore(p.end) || time.equals(p.end))));
         }
 
         Instant until = getRestrictionInstant(feature);
@@ -287,15 +297,39 @@ public class ConfigManager {
     }
 
     private Instant parseDate(String dateStr, String context) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT).withZone(timeZone);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
         try {
-            return ZonedDateTime.parse(dateStr, formatter).toInstant();
+            return LocalDateTime.parse(dateStr, formatter).atZone(timeZone).toInstant();
         } catch (DateTimeParseException e) {
             plugin.getLogger().warning("Invalid date format for " + context + ": " + dateStr + ". Using default.");
             try {
-                return ZonedDateTime.parse(DEFAULT_DATE, formatter).toInstant();
+                return LocalDateTime.parse(DEFAULT_DATE, formatter).atZone(timeZone).toInstant();
             } catch (DateTimeParseException ex) {
                 return Instant.MAX;
+            }
+        }
+    }
+
+    private void loadFallbackSpawns(FileConfiguration config) {
+        String defaultSpawnWorld = config.getString("fallback-spawns.default");
+        if (defaultSpawnWorld != null && !defaultSpawnWorld.isBlank()) {
+            fallbackSpawnWorlds.put("default", defaultSpawnWorld);
+        }
+
+        for (String feature : List.of("nether", "end", "elytra")) {
+            String worldName = config.getString("fallback-spawns." + feature);
+            if (worldName != null && !worldName.isBlank()) {
+                fallbackSpawnWorlds.put(feature, worldName);
+            }
+        }
+
+        ConfigurationSection customFallbackSection = config.getConfigurationSection("fallback-spawns.custom-worlds");
+        if (customFallbackSection == null) return;
+
+        for (String worldName : customFallbackSection.getKeys(false)) {
+            String fallbackWorld = customFallbackSection.getString(worldName);
+            if (fallbackWorld != null && !fallbackWorld.isBlank()) {
+                fallbackSpawnWorlds.put(worldName, fallbackWorld);
             }
         }
     }
@@ -358,5 +392,15 @@ public class ConfigManager {
 
     public Instant getCustomWorldRestrictionInstant(String worldName) {
         return customWorldRestrictionInstants.getOrDefault(worldName, Instant.MAX);
+    }
+
+    public String getFallbackSpawnWorld(String feature) {
+        return fallbackSpawnWorlds.getOrDefault(feature, fallbackSpawnWorlds.get("default"));
+    }
+
+    public Set<String> getAllFeatures() {
+        Set<String> features = new LinkedHashSet<>(List.of("nether", "end", "elytra"));
+        features.addAll(customWorldDisables.keySet());
+        return features;
     }
 }
