@@ -54,7 +54,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.VERSION }}
           CHANGELOG: ${{ steps.changelog.outputs.CHANGELOG }}
         run: |
-          JAR_PATH="target/worldaccessblocker-${VERSION}.jar"
+          JAR_PATH=$(find target -name "worldaccessblocker-*.jar" ! -name "original-*" | head -1)
+          echo "Using JAR: $JAR_PATH"
           DATA=$(jq -n \
             --arg version "$VERSION" \
             --arg changelog "$CHANGELOG" \
@@ -70,7 +71,13 @@ jobs:
               "featured": true,
               "file_parts": ["file"]
             }')
-          curl --fail -s -X POST "https://api.modrinth.com/v2/version" \
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST "https://api.modrinth.com/v2/version" \
             -H "Authorization: $MODRINTH_TOKEN" \
             -F "data=$DATA" \
-            -F "file=@${JAR_PATH}"
+            -F "file=@${JAR_PATH}")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP $HTTP_CODE: $BODY"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            exit 1
+          fi
