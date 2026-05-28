@@ -4,6 +4,9 @@ import net.denfry.worldAccessBlocker.listeners.ElytraBlocker;
 import net.denfry.worldAccessBlocker.listeners.EndBlocker;
 import net.denfry.worldAccessBlocker.listeners.PortalBlocker;
 import net.denfry.worldAccessBlocker.listeners.UpdateNotifier;
+import net.denfry.worldAccessBlocker.listeners.WorldEntryBlocker;
+import net.denfry.worldAccessBlocker.runtime.PlatformRuntime;
+import net.denfry.worldAccessBlocker.runtime.PlatformRuntimeFactory;
 import net.denfry.worldAccessBlocker.utils.BypassCommand;
 import net.denfry.worldAccessBlocker.utils.BypassManager;
 import net.denfry.worldAccessBlocker.utils.ConfigManager;
@@ -32,6 +35,7 @@ public class WorldAccessBlocker extends JavaPlugin {
     private ConfigManager configManager;
     private LanguageManager languageManager;
     private BypassManager bypassManager;
+    private PlatformRuntime runtime;
 
     @Override
     public void onEnable() {
@@ -40,12 +44,14 @@ public class WorldAccessBlocker extends JavaPlugin {
         configManager = new ConfigManager(this);
         languageManager = new LanguageManager(this);
         bypassManager = new BypassManager(this);
+        runtime = PlatformRuntimeFactory.create(this);
         configManager.loadConfigValues();
         bypassManager.loadBypasses();
 
         getServer().getPluginManager().registerEvents(new PortalBlocker(this), this);
         getServer().getPluginManager().registerEvents(new EndBlocker(this), this);
         getServer().getPluginManager().registerEvents(new ElytraBlocker(this), this);
+        getServer().getPluginManager().registerEvents(new WorldEntryBlocker(this), this);
 
         if (getCommand("wabreload") != null) {
             Objects.requireNonNull(getCommand("wabreload")).setExecutor(new ReloadCommand(this, configManager, languageManager));
@@ -61,8 +67,8 @@ public class WorldAccessBlocker extends JavaPlugin {
             log.severe("Command /wab is not registered in plugin.yml");
         }
 
-        if (Bukkit.getVersion().contains("Folia")) {
-            log.warning("Folia detected: PlayerPortalEvent-based nether blocking may be limited.");
+        if (PlatformRuntimeFactory.isFoliaRuntime()) {
+            log.info("Folia runtime detected. Folia scheduler adapters enabled.");
         }
 
         try {
@@ -80,9 +86,9 @@ public class WorldAccessBlocker extends JavaPlugin {
             log.info("PlaceholderAPI hook enabled.");
         }
 
-        Bukkit.getScheduler().runTaskTimer(this, new RestrictionEnforcer(this), 0L, 100L);
+        runtime.runRepeatingGlobal(new RestrictionEnforcer(this), 0L, 100L);
 
-        VersionChecker versionChecker = new VersionChecker(this);
+        VersionChecker versionChecker = new VersionChecker(this, runtime);
         versionChecker.checkAsync();
         getServer().getPluginManager().registerEvents(new UpdateNotifier(versionChecker, languageManager), this);
 
@@ -158,5 +164,9 @@ public class WorldAccessBlocker extends JavaPlugin {
 
     public BypassManager getBypassManager() {
         return bypassManager;
+    }
+
+    public PlatformRuntime getRuntime() {
+        return runtime;
     }
 }

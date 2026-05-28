@@ -1,6 +1,6 @@
 package net.denfry.worldAccessBlocker.utils;
 
-import org.bukkit.Bukkit;
+import net.denfry.worldAccessBlocker.runtime.PlatformRuntime;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedReader;
@@ -15,16 +15,18 @@ public class VersionChecker {
             "https://api.modrinth.com/v2/project/worldaccessblocker/version?limit=1";
 
     private final JavaPlugin plugin;
+    private final PlatformRuntime runtime;
     private final String currentVersion;
     private volatile String latestVersion = null; // null=pending, ""=up-to-date, "x.y.z"=new version
 
-    public VersionChecker(JavaPlugin plugin) {
+    public VersionChecker(JavaPlugin plugin, PlatformRuntime runtime) {
         this.plugin = plugin;
+        this.runtime = runtime;
         this.currentVersion = plugin.getDescription().getVersion();
     }
 
     public void checkAsync() {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runtime.runAsync(() -> {
             try {
                 String response = fetchResponse();
                 String latest = parseVersionFromResponse(response);

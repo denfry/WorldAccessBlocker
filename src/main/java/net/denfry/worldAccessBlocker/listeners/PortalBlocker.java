@@ -152,16 +152,20 @@ public class PortalBlocker implements Listener {
                 plugin.getConfigManager().isDisableNether() &&
                 plugin.getConfigManager().isRestrictionActive("nether", now) &&
                 plugin.isRestricted(player, "nether")) {
-            player.teleport(plugin.getFallbackSpawn("nether"));
-            plugin.sendRestrictionMessage(player, "nether");
+            plugin.getRuntime().runForPlayer(player, () -> {
+                plugin.getRuntime().teleportPlayer(player, plugin.getFallbackSpawn("nether"));
+                plugin.sendRestrictionMessage(player, "nether");
+            });
         }
 
         if (env == World.Environment.THE_END &&
                 plugin.getConfigManager().isDisableEnd() &&
                 plugin.getConfigManager().isRestrictionActive("end", now) &&
                 plugin.isRestricted(player, "end")) {
-            player.teleport(plugin.getFallbackSpawn("end"));
-            plugin.sendRestrictionMessage(player, "end");
+            plugin.getRuntime().runForPlayer(player, () -> {
+                plugin.getRuntime().teleportPlayer(player, plugin.getFallbackSpawn("end"));
+                plugin.sendRestrictionMessage(player, "end");
+            });
         }
     }
 }

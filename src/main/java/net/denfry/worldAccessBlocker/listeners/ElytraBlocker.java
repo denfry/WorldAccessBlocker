@@ -15,7 +15,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.time.Instant;
 
@@ -28,35 +27,36 @@ public class ElytraBlocker implements Listener {
     }
 
     private void startElytraCheckTask() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!plugin.getConfigManager().isDisableElytraEquip()) return;
-                Instant now = Instant.now();
-                if (!plugin.getConfigManager().isRestrictionActive("elytra_equip", now)) return;
+        plugin.getRuntime().runRepeatingGlobal(() -> {
+            if (!plugin.getConfigManager().isDisableElytraEquip()) return;
+            Instant now = Instant.now();
+            if (!plugin.getConfigManager().isRestrictionActive("elytra_equip", now)) return;
 
-                for (Player player : plugin.getServer().getOnlinePlayers()) {
-                    if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR)
-                        continue;
-                    if (!plugin.isRestricted(player, "elytra")) continue;
-
-                    PlayerInventory inventory = player.getInventory();
-                    ItemStack chestplate = inventory.getChestplate();
-                    if (chestplate != null && chestplate.getType() == Material.ELYTRA) {
-                        int firstEmptySlot = inventory.firstEmpty();
-                        if (firstEmptySlot != -1) {
-                            inventory.setItem(firstEmptySlot, chestplate.clone());
-                            inventory.setChestplate(null);
-                            plugin.sendRestrictionMessage(player, "elytra_equip");
-                        } else {
-                            player.getWorld().dropItemNaturally(player.getLocation(), chestplate.clone());
-                            inventory.setChestplate(null);
-                            plugin.sendRestrictionMessage(player, "elytra_equip");
-                        }
-                    }
-                }
+            for (Player player : plugin.getServer().getOnlinePlayers()) {
+                plugin.getRuntime().runForPlayer(player, () -> enforceElytraUnequip(player));
             }
-        }.runTaskTimer(plugin, 0L, 20L);
+        }, 0L, 20L);
+    }
+
+    private void enforceElytraUnequip(Player player) {
+        if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return;
+        if (!plugin.isRestricted(player, "elytra")) return;
+
+        PlayerInventory inventory = player.getInventory();
+        ItemStack chestplate = inventory.getChestplate();
+        if (chestplate == null || chestplate.getType() != Material.ELYTRA) return;
+
+        int firstEmptySlot = inventory.firstEmpty();
+        if (firstEmptySlot != -1) {
+            inventory.setItem(firstEmptySlot, chestplate.clone());
+            inventory.setChestplate(null);
+            plugin.sendRestrictionMessage(player, "elytra_equip");
+            return;
+        }
+
+        player.getWorld().dropItemNaturally(player.getLocation(), chestplate.clone());
+        inventory.setChestplate(null);
+        plugin.sendRestrictionMessage(player, "elytra_equip");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
