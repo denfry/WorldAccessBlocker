@@ -22,3 +22,6 @@ permissions:
   wab.bypass:
     description: "Allows bypassing restrictions"
     default: op
+  wab.update-notify:
+    description: "Receive in-game notifications when a new plugin version is available"
+    default: op

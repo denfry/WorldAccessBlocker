@@ -19,11 +19,11 @@ public class UpdateNotifier implements Listener {
         this.languageManager = languageManager;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerJoin(PlayerJoinEvent event) {
         String latest = versionChecker.getLatestVersion();
         if (latest == null || latest.isEmpty()) return;
-        if (!event.getPlayer().hasPermission("wab.reload")) return;
+        if (!event.getPlayer().hasPermission("wab.update-notify")) return;
         String text = languageManager.getMessage("update_available", latest);
         event.getPlayer().sendMessage(Component.text(text).color(NamedTextColor.YELLOW));
     }
