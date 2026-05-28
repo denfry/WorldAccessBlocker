@@ -60,7 +60,7 @@ jobs:
             --arg version "$VERSION" \
             --arg changelog "$CHANGELOG" \
             '{
-              "project_id": "worldaccessblocker",
+              "project_id": "chVqXf9e",
               "version_number": $version,
               "name": ("WorldAccessBlocker " + $version),
               "changelog": $changelog,
