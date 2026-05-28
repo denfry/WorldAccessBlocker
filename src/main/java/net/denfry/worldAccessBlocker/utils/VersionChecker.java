@@ -16,7 +16,7 @@ public class VersionChecker {
 
     private final JavaPlugin plugin;
     private final String currentVersion;
-    volatile String latestVersion = null; // null=pending, ""=up-to-date, "x.y.z"=new version
+    private volatile String latestVersion = null; // null=pending, ""=up-to-date, "x.y.z"=new version
 
     public VersionChecker(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -34,7 +34,7 @@ public class VersionChecker {
                     latestVersion = "";
                 }
             } catch (Exception e) {
-                plugin.getLogger().warning("[WAB] Version check failed: " + e.getMessage());
+                plugin.getLogger().warning("Version check failed: " + e.getMessage());
                 latestVersion = "";
             }
         });
@@ -48,7 +48,11 @@ public class VersionChecker {
         conn.setRequestProperty("User-Agent",
                 "WorldAccessBlocker/" + currentVersion + " (github.com/denfry)");
         try {
-            if (conn.getResponseCode() != 200) return "[]";
+            if (conn.getResponseCode() != 200) {
+                java.io.InputStream err = conn.getErrorStream();
+                if (err != null) { err.close(); }
+                return "[]";
+            }
             StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(conn.getInputStream()))) {
@@ -94,9 +98,9 @@ public class VersionChecker {
         if (parts.length < 2) return null;
         try {
             int[] result = new int[3];
-            result[0] = Integer.parseInt(parts[0]);
-            result[1] = Integer.parseInt(parts[1]);
-            result[2] = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+            result[0] = Integer.parseInt(parts[0].split("[-+]", 2)[0]);
+            result[1] = Integer.parseInt(parts[1].split("[-+]", 2)[0]);
+            result[2] = parts.length > 2 ? Integer.parseInt(parts[2].split("[-+]", 2)[0]) : 0;
             return result;
         } catch (NumberFormatException e) {
             return null;

@@ -66,4 +66,16 @@ class VersionCheckerTest {
         assertFalse(VersionChecker.isNewer("nightly", "0.7.1"));
         assertFalse(VersionChecker.isNewer("0.8.0", "invalid"));
     }
+
+    @Test
+    void stripsPreReleaseLabelBeforeComparing() {
+        assertTrue(VersionChecker.isNewer("0.8.0", "0.7.1-SNAPSHOT"));
+        assertTrue(VersionChecker.isNewer("0.8.0-beta.1", "0.7.1"));
+    }
+
+    @Test
+    void handlesPartialVersion() {
+        assertTrue(VersionChecker.isNewer("1.1", "1.0.5"));
+        assertFalse(VersionChecker.isNewer("1.0", "1.0.5"));
+    }
 }
