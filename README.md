@@ -152,7 +152,7 @@ Install [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.6245/
 
 ### Does WorldAccessBlocker work with Folia?
 
-Yes. Since v0.8.0, WorldAccessBlocker uses a native `PlatformRuntime` abstraction that dispatches tasks via the Folia regional scheduler when running on Folia, and the standard Bukkit scheduler on Paper/Spigot.
+Yes. Since v0.9.0, WorldAccessBlocker uses a native `PlatformRuntime` abstraction that dispatches tasks via the Folia regional scheduler when running on Folia, and the standard Bukkit scheduler on Paper/Spigot.
 
 ### Can I restrict a world by date and then switch to a schedule later?
 
