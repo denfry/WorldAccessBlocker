@@ -3,12 +3,14 @@ package net.denfry.worldAccessBlocker;
 import net.denfry.worldAccessBlocker.listeners.ElytraBlocker;
 import net.denfry.worldAccessBlocker.listeners.EndBlocker;
 import net.denfry.worldAccessBlocker.listeners.PortalBlocker;
+import net.denfry.worldAccessBlocker.listeners.UpdateNotifier;
 import net.denfry.worldAccessBlocker.utils.BypassCommand;
 import net.denfry.worldAccessBlocker.utils.BypassManager;
 import net.denfry.worldAccessBlocker.utils.ConfigManager;
 import net.denfry.worldAccessBlocker.utils.LanguageManager;
 import net.denfry.worldAccessBlocker.utils.ReloadCommand;
 import net.denfry.worldAccessBlocker.utils.RestrictionEnforcer;
+import net.denfry.worldAccessBlocker.utils.VersionChecker;
 import net.denfry.worldAccessBlocker.utils.WabPlaceholders;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -79,6 +81,11 @@ public class WorldAccessBlocker extends JavaPlugin {
         }
 
         Bukkit.getScheduler().runTaskTimer(this, new RestrictionEnforcer(this), 0L, 100L);
+
+        VersionChecker versionChecker = new VersionChecker(this);
+        versionChecker.checkAsync();
+        getServer().getPluginManager().registerEvents(new UpdateNotifier(versionChecker, languageManager), this);
+
         log.info("WorldAccessBlocker enabled.");
     }
 
