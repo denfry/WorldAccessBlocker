@@ -45,7 +45,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: "WorldAccessBlocker ${{ steps.version.outputs.VERSION }}"
-          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          body: "${{ steps.changelog.outputs.CHANGELOG }}"
           files: target/worldaccessblocker-${{ steps.version.outputs.VERSION }}.jar
 
       - name: Upload to Modrinth
